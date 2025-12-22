@@ -52,6 +52,14 @@ vim.o.scrolloff = 10
 
 vim.o.confirm = true
 
+vim.opt.expandtab = true
+
+vim.opt.shiftwidth = 2
+
+vim.opt.tabstop = 2
+
+vim.opt.softtabstop = 2
+
 vim.o.foldmethod = 'indent'
 
 vim.o.foldenable = false
