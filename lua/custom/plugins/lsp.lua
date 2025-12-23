@@ -5,9 +5,37 @@ return {
       -- Automatically install LSPs and related tools to stdpath for Neovim
       -- Mason must be loaded before its dependents so we need to set it up here.
       -- NOTE: `opts = {}` is the same as calling `require('mason').setup({})`
-      { 'mason-org/mason.nvim', opts = {} },
-      'mason-org/mason-lspconfig.nvim',
-      'WhoIsSethDaniel/mason-tool-installer.nvim',
+      {
+        'mason-org/mason.nvim',
+        opts = {
+          registries = {
+            'github:mason-org/mason-registry',
+            'github:Crashdummyy/mason-registry',
+          },
+        },
+      },
+      { 'mason-org/mason-lspconfig.nvim', opts = {} },
+      {
+        'WhoIsSethDaniel/mason-tool-installer.nvim',
+        opts = {
+          ensure_installed = {
+            'lua-language-server',
+            'glow',
+            'xmlformatter',
+            'csharpier',
+            'prettier',
+            'stylua',
+            'bicep-lsp',
+            'html-lsp',
+            'css-lsp',
+            'eslint-lsp',
+            'typescript-language-server',
+            'json-lsp',
+            'rust-analyzer',
+            'roslyn',
+          },
+        },
+      },
 
       -- Useful status updates for LSP.
       { 'j-hui/fidget.nvim', opts = {} },
@@ -346,6 +374,15 @@ return {
         -- You can use 'stop_after_first' to run the first available formatter from the list
         -- javascript = { "prettierd", "prettier", stop_after_first = true },
       },
+    },
+  },
+  {
+    'seblyng/roslyn.nvim',
+    ---@module 'roslyn.config'
+    ---@type RoslynNvimConfig
+    ft = { 'cs', 'razor' },
+    opts = {
+      -- your configuration comes here; leave empty for default settings
     },
   },
 }
