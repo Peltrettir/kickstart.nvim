@@ -1,6 +1,11 @@
 local rtp = vim.opt.rtp
 rtp:prepend 'C:\\PERSONALE\\REPO\\kickstart.nvim'
 
+require 'custom.set'
+require 'custom.autocommands'
+require 'custom.keymap'
+require 'custom.dap-dll-autofiller'
+
 -- [[ Install `lazy.nvim` plugin manager ]]
 local lazypath = vim.fn.stdpath 'data' .. '/lazy/lazy.nvim'
 if not (vim.uv or vim.loop).fs_stat(lazypath) then
@@ -13,10 +18,6 @@ end
 
 ---@type vim.Option
 rtp:prepend(lazypath)
-
-require 'custom.set'
-require 'custom.autocommands'
-require 'custom.keymap'
 
 -- [[ Configure and install plugins ]]
 --
