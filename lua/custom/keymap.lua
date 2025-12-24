@@ -9,11 +9,23 @@ vim.keymap.set('n', '<leader>q', vim.diagnostic.setloclist, { desc = 'Open diagn
 -- or just use <C-\><C-n> to exit terminal mode
 vim.keymap.set('t', '<Esc><Esc>', '<C-\\><C-n>', { desc = 'Exit terminal mode' })
 
--- NOTE: Use CTRL+<hjkl> to switch between windows
+-- NOTE: Window operations
 vim.keymap.set('n', '<C-h>', '<C-w><C-h>', { desc = 'Move focus to the left window' })
 vim.keymap.set('n', '<C-l>', '<C-w><C-l>', { desc = 'Move focus to the right window' })
 vim.keymap.set('n', '<C-j>', '<C-w><C-j>', { desc = 'Move focus to the lower window' })
 vim.keymap.set('n', '<C-k>', '<C-w><C-k>', { desc = 'Move focus to the upper window' })
+vim.keymap.set('n', '<C-down>', function()
+  vim.cmd 'resize -1'
+end, { desc = 'Resize window reduce height' })
+vim.keymap.set('n', '<C-up>', function()
+  vim.cmd 'resize +1'
+end, { desc = 'Resize window increase height' })
+vim.keymap.set('n', '<C-left>', function()
+  vim.cmd 'vertical resize -1'
+end, { desc = 'Resize window reduce width' })
+vim.keymap.set('n', '<C-right>', function()
+  vim.cmd 'vertical resize +1'
+end, { desc = 'Resize window increase width' })
 
 -- NOTE: Windows default association don't require GUI applications
 -- manually mapped text files to nvim

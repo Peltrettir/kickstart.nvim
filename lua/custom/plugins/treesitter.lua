@@ -18,6 +18,9 @@ return {
         'vimdoc',
         'c_sharp',
         'razor',
+        'json',
+        'json5',
+        'jsondoc',
       },
       -- Autoinstall languages that are not installed
       auto_install = true,

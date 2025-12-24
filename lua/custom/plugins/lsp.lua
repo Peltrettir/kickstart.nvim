@@ -1,41 +1,54 @@
 return {
+  { -- Donwload packages/dlls for plugins
+    'mason-org/mason.nvim',
+    opts = {
+      registries = {
+        'github:mason-org/mason-registry',
+        'github:Crashdummyy/mason-registry',
+      },
+    },
+  },
+  { -- Auto install/enable installed servers
+    'mason-org/mason-lspconfig.nvim',
+    opts = {},
+  },
+  { -- Auto download/update mason packages
+    'mason-tool-installer.nvim',
+    opts = {
+      ensure_installed = {
+        'xmlformatter',
+        'csharpier',
+        'prettier',
+        'lua-language-server',
+        'html-lsp',
+        'css-lsp',
+        'eslint-lsp',
+        'typescript-language-server',
+        'roslyn',
+        'codebook',
+        'lua-language-server',
+        'stylua',
+        'rust-analyzer',
+        'json-lsp',
+      },
+      auto_update = true,
+      run_on_start = true,
+      debounce_hours = 4,
+      integrations = {
+        ['mason-lspconfig'] = true,
+        ['mason-nvim-dap'] = true,
+      },
+    },
+    config = function(_, opts)
+      local plugin = require 'mason-tool-installer'
+      plugin.setup(opts)
+      plugin.run_on_start()
+      plugin.check_install(true, true)
+    end,
+  },
   { -- Main LSP Configuration
     'neovim/nvim-lspconfig',
     dependencies = {
-      -- Automatically install LSPs and related tools to stdpath for Neovim
-      -- Mason must be loaded before its dependents so we need to set it up here.
-      -- NOTE: `opts = {}` is the same as calling `require('mason').setup({})`
-      {
-        'mason-org/mason.nvim',
-        opts = {
-          registries = {
-            'github:mason-org/mason-registry',
-            'github:Crashdummyy/mason-registry',
-          },
-        },
-      },
-      { 'mason-org/mason-lspconfig.nvim', opts = {} },
-      {
-        'WhoIsSethDaniel/mason-tool-installer.nvim',
-        opts = {
-          ensure_installed = {
-            'lua-language-server',
-            'glow',
-            'xmlformatter',
-            'csharpier',
-            'prettier',
-            'stylua',
-            'bicep-lsp',
-            'html-lsp',
-            'css-lsp',
-            'eslint-lsp',
-            'typescript-language-server',
-            'json-lsp',
-            'rust-analyzer',
-            'roslyn',
-          },
-        },
-      },
 
       -- Useful status updates for LSP.
       { 'j-hui/fidget.nvim', opts = {} },
@@ -368,11 +381,13 @@ return {
       end,
       formatters_by_ft = {
         lua = { 'stylua' },
-        -- Conform can also run multiple formatters sequentially
-        -- python = { "isort", "black" },
-        --
-        -- You can use 'stop_after_first' to run the first available formatter from the list
-        -- javascript = { "prettierd", "prettier", stop_after_first = true },
+        markdown = { 'prettier' },
+        json = { 'prettier' },
+        python = { 'prettier' },
+        html = { 'prettier' },
+        css = { 'prettier' },
+        javascript = { 'prettier' },
+        typescript = { 'prettier' },
       },
     },
   },
