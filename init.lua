@@ -1,5 +1,5 @@
 local rtp = vim.opt.rtp
-rtp:prepend 'C:\\PERSONALE\\REPO\\kickstart.nvim'
+rtp:prepend 'C:\\PERSONALE\\nvim-config'
 
 require 'custom.set'
 require 'custom.autocommands'
