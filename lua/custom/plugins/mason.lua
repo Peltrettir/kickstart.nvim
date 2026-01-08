@@ -2,10 +2,10 @@ return {
   { -- Donwload packages/dlls for plugins
     'mason-org/mason.nvim',
     opts = {
-      registries = {
-        'github:mason-org/mason-registry',
-        'github:Crashdummyy/mason-registry',
-      },
+      -- registries = {
+      --   'github:mason-org/mason-registry',
+      --   'github:Crashdummyy/mason-registry',
+      -- },
     },
   },
   { -- Auto install/enable installed servers
@@ -24,7 +24,7 @@ return {
         'css-lsp',
         'eslint-lsp',
         'typescript-language-server',
-        'roslyn',
+        -- 'roslyn',
         'codebook',
         'lua-language-server',
         'stylua',

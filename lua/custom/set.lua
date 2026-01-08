@@ -6,6 +6,8 @@ vim.g.maplocalleader = ' '
 vim.g.have_nerd_font = true
 
 -- [[ Setting options ]]
+vim.o.winborder = 'rounded'
+
 vim.opt.number = true
 
 vim.opt.relativenumber = true

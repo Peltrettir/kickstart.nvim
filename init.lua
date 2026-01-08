@@ -1,5 +1,29 @@
+local sep = package.config:sub(1, 1)
+local base_path = string.sub(debug.getinfo(1).source, 2, string.len '/init.lua' * -1 - 1)
 local rtp = vim.opt.rtp
-rtp:prepend 'C:\\PERSONALE\\nvim-config'
+
+package.path = base_path
+  .. sep
+  .. '?.lua;'
+  .. base_path
+  .. sep
+  .. '?'
+  .. sep
+  .. 'init.lua;'
+  .. base_path
+  .. sep
+  .. 'lua'
+  .. sep
+  .. '?.lua;'
+  .. base_path
+  .. sep
+  .. 'lua'
+  .. '?'
+  .. sep
+  .. 'init.lua;'
+  .. package.path
+
+rtp:prepend(base_path)
 
 require 'custom.set'
 require 'custom.autocommands'

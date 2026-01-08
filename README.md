@@ -15,6 +15,7 @@ where the heavy lifting seems to have been done by [easy-dotnet.nvim](https://gi
   - [x] Lsp
   - [x] Debugger
   - [ ] Test runner
+  - [ ] Package management
   - [ ] Code playground
 - [ ] Git integration
   - [ ] floating lazygit

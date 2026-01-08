@@ -271,8 +271,15 @@ return {
       },
 
       sources = {
-        default = { 'lsp', 'path', 'snippets', 'lazydev' },
+        default = { 'lsp', 'easy-dotnet', 'path', 'snippets', 'lazydev' },
         providers = {
+          ['easy-dotnet'] = {
+            name = 'easy-dotnet',
+            enabled = true,
+            module = 'easy-dotnet.completion.blink',
+            score_offset = 10000,
+            async = true,
+          },
           lazydev = { module = 'lazydev.integrations.blink', score_offset = 100 },
         },
       },
@@ -322,7 +329,7 @@ return {
         -- Disable "format_on_save lsp_fallback" for languages that don't
         -- have a well standardized coding style. You can add additional
         -- languages here or re-enable it for the disabled ones.
-        local disable_filetypes = { c = true, cpp = true }
+        local disable_filetypes = { c = true, cpp = true, cs = true, sln = true, csproj = true }
         if disable_filetypes[vim.bo[bufnr].filetype] then
           return nil
         else
@@ -344,13 +351,13 @@ return {
       },
     },
   },
-  {
-    'seblyng/roslyn.nvim',
-    ---@module 'roslyn.config'
-    ---@type RoslynNvimConfig
-    ft = { 'cs', 'razor' },
-    opts = {
-      -- your configuration comes here; leave empty for default settings
-    },
-  },
+  -- {
+  --   'seblyng/roslyn.nvim',
+  --   ---@module 'roslyn.config'
+  --   ---@type RoslynNvimConfig
+  --   ft = { 'cs', 'razor' },
+  --   opts = {
+  --     -- your configuration comes here; leave empty for default settings
+  --   },
+  -- },
 }
