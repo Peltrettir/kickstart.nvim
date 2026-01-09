@@ -17,7 +17,6 @@ return {
     opts = {
       ensure_installed = {
         'xmlformatter',
-        'csharpier',
         'prettier',
         'lua-language-server',
         'html-lsp',

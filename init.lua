@@ -28,7 +28,6 @@ rtp:prepend(base_path)
 require 'custom.set'
 require 'custom.autocommands'
 require 'custom.keymap'
-require 'custom.dap-dll-autofiller'
 
 -- [[ Install `lazy.nvim` plugin manager ]]
 local lazypath = vim.fn.stdpath 'data' .. '/lazy/lazy.nvim'
