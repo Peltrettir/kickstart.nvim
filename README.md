@@ -14,9 +14,10 @@ where the heavy lifting seems to have been done by [easy-dotnet.nvim](https://gi
 - [ ] Dotnet framework dev environment
   - [x] Lsp
   - [x] Debugger
-  - [ ] Test runner
-  - [ ] Package management
-  - [ ] Code playground
+  - [x] Test runner
+  - [ ] Debug tests
+  - [x] Package management
+  - [x] Code playground
 - [ ] Git integration
   - [ ] floating lazygit
   - [ ] diff/merge handling
