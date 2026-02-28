@@ -105,12 +105,44 @@ function M.ensure_folder(path)
         return nil
     end
 
-    local result = os.execute 'mkdir ' .. path
-    if result ~= 0 then
-        return 'Error creating directory ' .. path
+    for subpath in M.get_subpaths(path) do
+        if vim.fn.isdirectory(subpath) then
+            return nil
+        end
+        local result = os.execute 'mkdir ' .. subpath
+        if result ~= 0 then
+            return 'Error creating directory ' .. subpath
+        end
     end
 
     return nil
+end
+
+---@param path Path
+---@return string[]|nil, message|nil
+function M.get_subpaths(path)
+    if M.is_null_or_empty(path) then
+        return nil, 'Invalid argument, nil or empty path'
+    end
+
+    local sep, error = M.separator()
+    if error ~= nil then
+        return nil, error
+    end
+
+    local subpaths = {}
+    for match in path:gmatch('[^' .. sep .. ']+') do
+        local prev = ''
+        local subpaths_count = #subpaths
+
+        if subpaths_count ~= 0 then
+            prev = subpaths[subpaths_count]
+        end
+
+        subpaths[subpaths_count + 1] = prev .. sep .. match
+    end
+
+    return subpaths, nil
 end
 
 return M

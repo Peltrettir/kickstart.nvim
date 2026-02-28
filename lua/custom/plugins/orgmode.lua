@@ -1,40 +1,451 @@
+---@param folders string[]|nil
+---@return string|nil, Path|nil, message|nil
+function get_folder(folders)
+    ---@type custom.utils
+    local utils = require 'custom.utils'
+
+    local separator, error = utils.separator()
+    if error ~= nil then
+        return nil, nil, error
+    end
+
+    local user_data_folder, error = utils.user_data_folder()
+    if error ~= nil then
+        return nil, nil, error
+    end
+
+    local requested_folder = user_data_folder .. 'orgfiles' .. separator
+    if folders ~= nil and #folders > 0 then
+        for _, folder in ipairs(folders) do
+            if not utils.is_null_or_empty(folder) then
+                requested_folder = requested_folder .. folder .. separator
+            end
+        end
+    end
+
+    error = utils.ensure_folder(requested_folder)
+    if error ~= nil then
+        return nil, nil, error
+    end
+
+    return separator, requested_folder, nil
+end
+
+local separator, orgmode_folder, error = get_folder()
+if error ~= nil then
+    vim.notify(error, vim.log.levels.ERROR)
+    return
+end
+
+local agenda_files = {
+    orgmode_folder .. '*.org',
+    orgmode_folder .. '**' .. separator .. '*.org',
+}
+
 return {
     {
         'nvim-orgmode/orgmode',
         event = 'VeryLazy',
+        dependencies = {},
         config = function()
-            ---@type custom.utils
-            local utils = require 'custom.utils'
-
-            local separator, error = utils.separator()
-            if not utils.is_null_or_empty(error) then
-                vim.notify(error, vim.log.levels.ERROR)
-                return
-            end
-
-            local user_data_folder, error = utils.user_data_folder()
-            if not utils.is_null_or_empty(error) then
-                vim.notify(error, vim.log.levels.ERROR)
-                return
-            end
-
-            local orgmode_folder = user_data_folder .. 'orgfiles' .. separator
-            error = utils.ensure_folder(orgmode_folder)
-            if not utils.is_null_or_empty(error) then
-                vim.notify(error, vim.log.levels.ERROR)
-                return
-            end
-
             require('orgmode.utils.treesitter.install').compilers = { 'clang' }
             require('orgmode').setup {
-                org_agenda_files = {
-                    orgmode_folder .. '*.org',
-                    orgmode_folder .. '**' .. separator .. '*.org',
-                },
+                org_agenda_files = agenda_files,
                 org_default_notes_file = orgmode_folder .. 'refile.org',
+                -- mappings = {
+                --     global = {
+                --         org_agenda = false,
+                --     },
+                -- },
             }
             -- Experimental LSP support
             vim.lsp.enable 'org'
+        end,
+    },
+    {
+        'hamidi-dev/org-super-agenda.nvim',
+        enabled = false, --got the agenda to find todos, but actions don't work. They seem to pick up the wrong line numbers, I don't know why
+        dependencies = {
+            'nvim-orgmode/orgmode', -- required
+            'lukas-reineke/headlines.nvim',
+        },
+        config = function()
+            local files = {}
+            for _, val in ipairs(agenda_files) do
+                vim.list_extend(files, vim.fn.glob(val, false, true))
+            end
+            require('org-super-agenda').setup {
+                -- Where to look for .org files
+                org_files = files,
+
+                -- TODO states + their quick filter keymaps and highlighting
+                -- Optional: add `shortcut` field to override the default key (first letter)
+                todo_states = {
+                    {
+                        name = 'TODO',
+                        keymap = 'ot',
+                        color = '#FF5555',
+                        strike_through = false,
+                        fields = {
+                            'filename',
+                            'todo',
+                            'headline',
+                            'priority',
+                            'date',
+                            'tags',
+                        },
+                    },
+                    {
+                        name = 'PROGRESS',
+                        keymap = 'op',
+                        color = '#FFAA00',
+                        strike_through = false,
+                        fields = {
+                            'filename',
+                            'todo',
+                            'headline',
+                            'priority',
+                            'date',
+                            'tags',
+                        },
+                    },
+                    {
+                        name = 'WAITING',
+                        keymap = 'ow',
+                        color = '#BD93F9',
+                        strike_through = false,
+                        fields = {
+                            'filename',
+                            'todo',
+                            'headline',
+                            'priority',
+                            'date',
+                            'tags',
+                        },
+                    },
+                    {
+                        name = 'DONE',
+                        keymap = 'od',
+                        color = '#50FA7B',
+                        strike_through = true,
+                        fields = { 'filename', 'todo', 'headline', 'priority', 'date', 'tags' },
+                    },
+                },
+
+                -- Group definitions (order matters; first match wins unless allow_duplicates=true)
+                groups = {
+                    {
+                        name = '📅 Today',
+                        matcher = function(i)
+                            return i.scheduled and i.scheduled:is_today()
+                        end,
+                        sort = { by = 'scheduled_time', order = 'asc' },
+                    },
+                    {
+                        name = '🗓️ Tomorrow',
+                        matcher = function(i)
+                            return i.scheduled and i.scheduled:days_from_today() == 1
+                        end,
+                        sort = { by = 'scheduled_time', order = 'asc' },
+                    },
+                    {
+                        name = '☠️ Deadlines',
+                        matcher = function(i)
+                            return i.deadline and i.todo_state ~= 'DONE' and not i:has_tag 'personal'
+                        end,
+                        sort = { by = 'deadline', order = 'asc' },
+                    },
+                    {
+                        name = '⭐ Important',
+                        matcher = function(i)
+                            return i.priority == 'A' and (i.deadline or i.scheduled)
+                        end,
+                        sort = { by = 'date_nearest', order = 'asc' },
+                    },
+                    {
+                        name = '⏳ Overdue',
+                        matcher = function(i)
+                            return i.todo_state ~= 'DONE' and ((i.deadline and i.deadline:is_past()) or (i.scheduled and i.scheduled:is_past()))
+                        end,
+                        sort = { by = 'date_nearest', order = 'asc' },
+                    },
+                    {
+                        name = '🏠 Personal',
+                        matcher = function(i)
+                            return i:has_tag 'personal'
+                        end,
+                    },
+                    {
+                        name = '💼 Work',
+                        matcher = function(i)
+                            return i:has_tag 'work'
+                        end,
+                    },
+                    {
+                        name = '📆 Upcoming',
+                        matcher = function(i)
+                            local days = require('org-super-agenda.config').get().upcoming_days or 10
+                            local d1 = i.deadline and i.deadline:days_from_today()
+                            local d2 = i.scheduled and i.scheduled:days_from_today()
+                            return (d1 and d1 >= 0 and d1 <= days) or (d2 and d2 >= 0 and d2 <= days)
+                        end,
+                        sort = { by = 'date_nearest', order = 'asc' },
+                    },
+                },
+
+                hide_empty_groups = false, -- drop blank sections
+                group_format = '* %s', -- group header format
+                other_group_name = 'Other',
+                show_other_group = true, -- show catch-all section
+            }
+
+            vim.keymap.set('n', '<leader>oa', '<cmd>OrgSuperAgenda<cr>', { desc = '[o]rgmode [a]genda' })
+            vim.keymap.set('n', '<leader>oA', '<cmd>OrgSuperAgenda!<cr>', { desc = '[o]rgmone [A]agenda fullscreen' })
+        end,
+    },
+    {
+        'lukas-reineke/headlines.nvim',
+        dependencies = { 'nvim-treesitter/nvim-treesitter' },
+        config = function()
+            require('headlines').setup {
+                markdown = {
+                    query = vim.treesitter.query.parse(
+                        'markdown',
+                        [[
+                                    (atx_heading [
+                                        (atx_h1_marker)
+                                        (atx_h2_marker)
+                                        (atx_h3_marker)
+                                        (atx_h4_marker)
+                                        (atx_h5_marker)
+                                        (atx_h6_marker)
+                                    ] @headline)
+
+                                    (thematic_break) @dash
+
+                                    (fenced_code_block) @codeblock
+
+                                    (block_quote_marker) @quote
+                                    (block_quote (paragraph (inline (block_continuation) @quote)))
+                                    (block_quote (paragraph (block_continuation) @quote))
+                                    (block_quote (block_continuation) @quote)
+                                ]]
+                    ),
+                    headline_highlights = { 'Headline' },
+                    bullet_highlights = {
+                        '@text.title.1.marker.markdown',
+                        '@text.title.2.marker.markdown',
+                        '@text.title.3.marker.markdown',
+                        '@text.title.4.marker.markdown',
+                        '@text.title.5.marker.markdown',
+                        '@text.title.6.marker.markdown',
+                    },
+                    bullets = { '◉', '○', '✸', '✿' },
+                    codeblock_highlight = 'CodeBlock',
+                    dash_highlight = 'Dash',
+                    dash_string = '-',
+                    quote_highlight = 'Quote',
+                    quote_string = '┃',
+                    fat_headlines = true,
+                    fat_headline_upper_string = '▄',
+                    fat_headline_lower_string = '▀',
+                },
+                rmd = {
+                    query = vim.treesitter.query.parse(
+                        'markdown',
+                        [[
+                                    (atx_heading [
+                                        (atx_h1_marker)
+                                        (atx_h2_marker)
+                                        (atx_h3_marker)
+                                        (atx_h4_marker)
+                                        (atx_h5_marker)
+                                        (atx_h6_marker)
+                                    ] @headline)
+
+                                    (thematic_break) @dash
+
+                                    (fenced_code_block) @codeblock
+
+                                    (block_quote_marker) @quote
+                                    (block_quote (paragraph (inline (block_continuation) @quote)))
+                                    (block_quote (paragraph (block_continuation) @quote))
+                                    (block_quote (block_continuation) @quote)
+                                ]]
+                    ),
+                    treesitter_language = 'markdown',
+                    headline_highlights = { 'Headline' },
+                    bullet_highlights = {
+                        '@text.title.1.marker.markdown',
+                        '@text.title.2.marker.markdown',
+                        '@text.title.3.marker.markdown',
+                        '@text.title.4.marker.markdown',
+                        '@text.title.5.marker.markdown',
+                        '@text.title.6.marker.markdown',
+                    },
+                    bullets = { '◉', '○', '✸', '✿' },
+                    codeblock_highlight = 'CodeBlock',
+                    dash_highlight = 'Dash',
+                    dash_string = '-',
+                    quote_highlight = 'Quote',
+                    quote_string = '┃',
+                    fat_headlines = true,
+                    fat_headline_upper_string = '▄',
+                    fat_headline_lower_string = '▀',
+                },
+                -- norg = {
+                --     query = vim.treesitter.query.parse(
+                --         'norg',
+                --         [[
+                --                     [
+                --                         (heading1_prefix)
+                --                         (heading2_prefix)
+                --                         (heading3_prefix)
+                --                         (heading4_prefix)
+                --                         (heading5_prefix)
+                --                         (heading6_prefix)
+                --                     ] @headline
+                --
+                --                     (weak_paragraph_delimiter) @dash
+                --                     (strong_paragraph_delimiter) @doubledash
+                --
+                --                     ([(ranged_tag
+                --                         name: (tag_name) @_name
+                --                         (#eq? @_name "code")
+                --                     )
+                --                     (ranged_verbatim_tag
+                --                         name: (tag_name) @_name
+                --                         (#eq? @_name "code")
+                --                     )] @codeblock (#offset! @codeblock 0 0 1 0))
+                --
+                --                     (quote1_prefix) @quote
+                --                 ]]
+                --     ),
+                --     headline_highlights = { 'Headline' },
+                --     bullet_highlights = {
+                --         '@neorg.headings.1.prefix',
+                --         '@neorg.headings.2.prefix',
+                --         '@neorg.headings.3.prefix',
+                --         '@neorg.headings.4.prefix',
+                --         '@neorg.headings.5.prefix',
+                --         '@neorg.headings.6.prefix',
+                --     },
+                --     bullets = { '◉', '○', '✸', '✿' },
+                --     codeblock_highlight = 'CodeBlock',
+                --     dash_highlight = 'Dash',
+                --     dash_string = '-',
+                --     doubledash_highlight = 'DoubleDash',
+                --     doubledash_string = '=',
+                --     quote_highlight = 'Quote',
+                --     quote_string = '┃',
+                --     fat_headlines = true,
+                --     fat_headline_upper_string = '▄',
+                --     fat_headline_lower_string = '▀',
+                -- },
+                org = {
+                    query = vim.treesitter.query.parse(
+                        'org',
+                        [[
+                                    (headline (stars) @headline)
+
+                                    (
+                                        (expr) @dash
+                                        (#match? @dash "^-----+$")
+                                    )
+
+                                    (block
+                                        name: (expr) @_name
+                                        (#match? @_name "(SRC|src)")
+                                    ) @codeblock
+
+                                    (paragraph . (expr) @quote
+                                        (#eq? @quote ">")
+                                    )
+                                ]]
+                    ),
+                    headline_highlights = { 'Headline' },
+                    bullet_highlights = {
+                        '@org.headline.level1',
+                        '@org.headline.level2',
+                        '@org.headline.level3',
+                        '@org.headline.level4',
+                        '@org.headline.level5',
+                        '@org.headline.level6',
+                        '@org.headline.level7',
+                        '@org.headline.level8',
+                    },
+                    bullets = { '◉', '○', '✸', '✿' },
+                    codeblock_highlight = 'CodeBlock',
+                    dash_highlight = 'Dash',
+                    dash_string = '-',
+                    quote_highlight = 'Quote',
+                    quote_string = '┃',
+                    fat_headlines = true,
+                    fat_headline_upper_string = '▄',
+                    fat_headline_lower_string = '▀',
+                },
+            }
+        end, -- or `opts = {}`
+    },
+    {
+        'akinsho/org-bullets.nvim',
+        config = function()
+            require('org-bullets').setup {
+                symbols = {
+                    -- list symbol
+                    list = '•',
+                    -- headlines can be a list
+                    headlines = { '◉', '○', '✸', '✿' },
+                    checkboxes = {
+                        half = { '', '@org.checkbox.halfchecked' },
+                        done = { '✓', '@org.keyword.done' },
+                        todo = { '˟', '@org.keyword.todo' },
+                    },
+                },
+            }
+        end,
+    },
+    {
+        'nvim-orgmode/telescope-orgmode.nvim',
+        event = 'VeryLazy',
+        dependencies = {
+            'nvim-orgmode/orgmode',
+            'nvim-telescope/telescope.nvim',
+        },
+        config = function()
+            local telescope = require 'telescope'
+            telescope.load_extension 'orgmode'
+
+            vim.keymap.set('n', '<leader>so', telescope.extensions.orgmode.search_headings, { desc = '[S]earch [O]rgfiles' })
+        end,
+    },
+    {
+        'chipsenkbeil/org-roam.nvim',
+        tag = '0.2.0',
+        dependencies = {
+            {
+                'nvim-orgmode/orgmode',
+                tag = '0.7.0',
+            },
+        },
+        config = function()
+            local separator, orgroam_folder, error = get_folder { 'orgroam' }
+            if error ~= nil then
+                vim.notify(error, vim.log.levels.ERROR)
+                return
+            end
+
+            require('org-roam').setup {
+                directory = orgroam_folder,
+                -- optional
+                org_files = {
+                    orgroam_folder .. '..' .. separator .. '*.org',
+                    orgroam_folder .. '..' .. separator .. '**' .. separator .. '*.org',
+                },
+                database = {
+                    path = orgroam_folder .. 'persistence.db',
+                },
+            }
         end,
     },
 }
