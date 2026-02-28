@@ -27,7 +27,10 @@ return {
 
             require('orgmode.utils.treesitter.install').compilers = { 'clang' }
             require('orgmode').setup {
-                org_agenda_files = orgmode_folder .. '**' .. separator .. '*',
+                org_agenda_files = {
+                    orgmode_folder .. '*.org',
+                    orgmode_folder .. '**' .. separator .. '*.org',
+                },
                 org_default_notes_file = orgmode_folder .. 'refile.org',
             }
             -- Experimental LSP support
