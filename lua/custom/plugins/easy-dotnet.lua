@@ -7,15 +7,19 @@ local function add_dotnet_mappings()
 
     vim.keymap.set('n', '<A-t>', function()
         vim.cmd 'Dotnet testrunner'
-    end, { nowait = true })
+    end, { nowait = true, desc = 'Dotnet [T]estrunner show/hide' })
+
+    vim.keymap.set('n', '<A-p>', function()
+        vim.cmd 'Dotnet project view'
+    end, { nowait = true, desc = 'Dotnet [P]roject view' })
 
     vim.keymap.set('n', '<C-p>', function()
         vim.cmd 'Dotnet debug profile default'
-    end, { nowait = true })
+    end, { nowait = true, desc = 'Dotnet debug [P]rofile defaul' })
 
     vim.keymap.set('n', '<C-b>', function()
         dotnet.build_default_quickfix()
-    end, { nowait = true })
+    end, { nowait = true, desc = 'Doenet [B]uild quickfix' })
 end
 
 return {
