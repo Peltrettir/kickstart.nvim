@@ -48,15 +48,15 @@ return {
         event = 'VeryLazy',
         dependencies = {},
         config = function()
-            require('orgmode.utils.treesitter.install').compilers = { 'clang' }
+            require('orgmode.utils.treesitter.install').compilers = { 'gcc' }
             require('orgmode').setup {
                 org_agenda_files = agenda_files,
                 org_default_notes_file = orgmode_folder .. 'refile.org',
-                -- mappings = {
-                --     global = {
-                --         org_agenda = false,
-                --     },
-                -- },
+                mappings = {
+                    global = {
+                        org_agenda = false,
+                    },
+                },
             }
             -- Experimental LSP support
             vim.lsp.enable 'org'
@@ -64,7 +64,7 @@ return {
     },
     {
         'hamidi-dev/org-super-agenda.nvim',
-        enabled = false, --got the agenda to find todos, but actions don't work. They seem to pick up the wrong line numbers, I don't know why
+        enabled = true, --got the agenda to find todos, but actions don't work. They seem to pick up the wrong line numbers, I don't know why
         dependencies = {
             'nvim-orgmode/orgmode', -- required
             'lukas-reineke/headlines.nvim',
@@ -205,7 +205,10 @@ return {
     },
     {
         'lukas-reineke/headlines.nvim',
-        dependencies = { 'nvim-treesitter/nvim-treesitter' },
+        dependencies = {
+            'nvim-orgmode/orgmode', -- required
+            'nvim-treesitter/nvim-treesitter',
+        },
         config = function()
             require('nvim-treesitter.parsers').org = {
                 install_info = {
