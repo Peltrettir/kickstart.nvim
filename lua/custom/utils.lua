@@ -18,16 +18,13 @@ function M.user_data_folder()
         return cache.user_data_folder, nil
     end
 
-    local folder_path
-    if vim.fn.has_key(vim.fn.environ(), PERSONALE_ENV_KEY) then
-        folder_path = vim.fn.getenv(PERSONALE_ENV_KEY)
-    else
-        local disk_root, error = M.disk_root()
-        if not M.is_null_or_empty(error) then
-            return nil, error
+    local folder_path = vim.fn.getenv(PERSONALE_ENV_KEY)
+    if M.is_null_or_empty(folder_path) then
+        if vim.loop.os_uname().sysname == "Windows_NT" then
+            folder_path = 'C:/Personale'
+        else
+            folder_path = vim.fn.expand('~/personale')
         end
-
-        folder_path = disk_root .. PERSONALE_ENV_KEY
     end
 
     local error = M.ensure_folder(folder_path)
@@ -91,7 +88,7 @@ end
 ---@param s string|nil
 ---@return boolean
 function M.is_null_or_empty(s)
-    return s == nil or s:match '^%s*$' ~= nil
+    return s == nil or s == vim.NIL or s:match '^%s*$' ~= nil
 end
 
 ---@param path Path
