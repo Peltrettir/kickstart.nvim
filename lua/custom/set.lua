@@ -5,6 +5,16 @@ vim.g.maplocalleader = ' '
 
 vim.g.have_nerd_font = true
 
+
+vim.g.clipboard = {
+  name = 'wl-clipboard',
+  copy = {
+    ['+'] = 'wl-copy',
+  },
+  paste = {
+    ['+'] = 'wl-paste',
+  },
+}
 -- [[ Setting options ]]
 vim.o.winborder = 'rounded'
 

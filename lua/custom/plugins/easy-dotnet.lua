@@ -40,7 +40,7 @@ return {
                 handler = false,
             },
             debugger = {
-                bin_path = vim.fs.joinpath(vim.fn.stdpath 'data', 'mason/bin/netcoredbg.cmd'),
+                -- bin_path = vim.fs.joinpath(vim.fn.stdpath 'data', 'mason/bin/netcoredbg.cmd'),
                 -- bin_path = "C:/Program Files (x86)/netcoredbg/netcoredbg.exe"
             },
             auto_bootstrap_namespace = {
