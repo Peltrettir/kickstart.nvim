@@ -69,5 +69,5 @@ vim.keymap.set('n', '<C-S-j>', '<C-w>J', { desc = 'Move window to the lower' })
 vim.keymap.set('n', '<C-S-k>', '<C-w>K', { desc = 'Move window to the upper' })
 
 -- NOTE: Insert mode keymaps
-vim.keymap.set("i", "<C-H>", "<esc>dbi", {silent = true, desc = 'delete from cursor to beginning of word'})
+vim.keymap.set("i", "<C-H>", "<esc>ldbi", {silent = true, desc = 'delete from cursor to beginning of word'})
 vim.keymap.set("i", "<C-Del>", "<esc>dwi", {silent = true, desc = 'delete from cursor to ending of word'})
