@@ -44,23 +44,34 @@ vim.keymap.set('n', 'gx', function()
 
     -- helper: extract extension
     local function get_ext(path)
-        return path:match '^.+%.([^./\\#]+)' -- ignores anchors
+        return path:match '^.+%.([^./\\#]+)'
     end
 
-    -- helper: strip markdown anchors
-    local ext = get_ext(target:gsub('#.*$', ''))
+    -- strip markdown anchors
+    local clean_target = target:gsub('#.*$', '')
+    local ext = get_ext(clean_target)
 
-    -- use Neovim only if:
-    --   - no extension
-    --   - or extension explicitly allowed
+    -- open inside nvim if allowed
     if ext == nil or nvim_extensions[ext:lower()] then
         vim.cmd('edit ' .. vim.fn.fnameescape(target))
         return
     end
 
-    -- otherwise, delegate to OS default
-    vim.fn.jobstart({ 'cmd', '/c', 'start', target }, { detach = true })
-end, { silent = true })
+    -- detect OS
+    local sysname = vim.loop.os_uname().sysname
+
+    if sysname == 'Windows_NT' then
+        -- Windows
+        vim.fn.jobstart({ 'cmd', '/c', 'start', target }, { detach = true })
+    elseif sysname == 'Linux' then
+        -- WSL / Linux
+        -- prefer xdg-open (works in WSL if properly configured)
+        vim.fn.jobstart({ 'xdg-open', target }, { detach = true })
+    elseif sysname == 'Darwin' then
+        -- macOS (optional, for completeness)
+        vim.fn.jobstart({ 'open', target }, { detach = true })
+    end
+end, { silent = true, desc = 'open link with os default application' })
 
 -- NOTE: Some terminals have colliding keymaps or are not able to send distinct keycodes
 vim.keymap.set('n', '<C-S-h>', '<C-w>H', { desc = 'Move window to the left' })
@@ -69,5 +80,5 @@ vim.keymap.set('n', '<C-S-j>', '<C-w>J', { desc = 'Move window to the lower' })
 vim.keymap.set('n', '<C-S-k>', '<C-w>K', { desc = 'Move window to the upper' })
 
 -- NOTE: Insert mode keymaps
-vim.keymap.set("i", "<C-H>", "<esc>ldbi", {silent = true, desc = 'delete from cursor to beginning of word'})
-vim.keymap.set("i", "<C-Del>", "<esc>dwi", {silent = true, desc = 'delete from cursor to ending of word'})
+vim.keymap.set('i', '<C-H>', '<esc>ldbi', { silent = true, desc = 'delete from cursor to beginning of word' })
+vim.keymap.set('i', '<C-Del>', '<esc>dwi', { silent = true, desc = 'delete from cursor to ending of word' })
